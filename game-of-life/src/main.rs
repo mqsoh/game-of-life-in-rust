@@ -12,6 +12,7 @@ fn main() {
     let win = ncurses::initscr();
     ncurses::cbreak();
     ncurses::noecho();
+    ncurses::nonl();
 
     let mut board = mkboard("
         ---------------------------------------------
