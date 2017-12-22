@@ -28,6 +28,7 @@ RUN /root/.cargo/bin/cargo build --release
 FROM debian:stretch
 LABEL author="Mason Staugler"
 LABEL repository="https://github.com/mqsoh/game-of-life-in-rust"
+LABEL usage="Run \"docker run -it --rm mqsoh/game-of-life-in-rust\". You might have to reset your shell with \"reset\". Sorry!"
 
 RUN apt update && apt install --assume-yes locales && \
     sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
