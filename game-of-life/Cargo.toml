@@ -1,7 +1,12 @@
 [package]
-name = "game-of-life"
+name = "game_of_life"
 version = "0.1.0"
 authors = ["mason"]
 
-[dependencies]
-ncurses = "5.86.0"
+[[bin]]
+name = "game_of_life"
+doc = false
+
+[dependencies.ncurses]
+version = "5.86.0"
+features = ["wide"]
