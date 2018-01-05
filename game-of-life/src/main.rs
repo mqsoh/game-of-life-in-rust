@@ -2,7 +2,7 @@ extern crate ncurses;
 extern crate game_of_life;
 
 use std::{thread, time};
-use game_of_life::{board_as_str, mkboard, tick};
+use game_of_life::{board_as_str, calculate_padding, mkboard, tick};
 
 fn main() {
     // This initialization sequence is recommended in the ncurses
@@ -41,10 +41,17 @@ fn main() {
         ---------------------------------------------
     ");
 
-    ncurses::wresize(win, board.len() as i32, board[0].len() as i32);
+    let mut winw: i32 = 0;
+    let mut winh: i32 = 0;
+    ncurses::getmaxyx(win, &mut winh, &mut winw);
+
+    let boardw = board[0].len() as i32;
+    let boardh = board.len() as i32;
+
+    let padding = calculate_padding(winw, winh, boardw, boardh);
 
     loop {
-        let b = board_as_str(&board);
+        let b = board_as_str(&board, &padding);
         ncurses::mvprintw(0, 0, b.as_str());
         ncurses::refresh();
         thread::sleep(time::Duration::from_millis(100));

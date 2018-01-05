@@ -1,5 +1,34 @@
 type Board = Vec<Vec<bool>>;
 
+#[derive(Debug)]
+pub struct Padding {
+    pub top: i32,
+    pub right: i32,
+    pub bottom: i32,
+    pub left: i32,
+}
+
+impl std::cmp::PartialEq for Padding {
+    fn eq(&self, other: &Padding) -> bool {
+        self.top == other.top && self.right == other.right && self.bottom == other.bottom && self.left == other.left
+    }
+}
+
+pub fn calculate_padding(window_width: i32, window_height: i32, board_width: i32, board_height: i32) -> Padding {
+    let diffw = window_width - board_width;
+    let diffh = window_height - board_height;
+
+    let diff_halfw = diffw as f32 / 2.0;
+    let diff_halfh = diffh as f32 / 2.0;
+
+    return Padding {
+        top: diff_halfh.floor() as i32,
+        right: diff_halfw.ceil() as i32,
+        bottom: diff_halfh.ceil() as i32,
+        left: diff_halfw.floor() as i32,
+    }
+}
+
 pub fn mkboard(b: &str) -> Board {
     let mut rows = Vec::new();
 
@@ -19,15 +48,20 @@ pub fn mkboard(b: &str) -> Board {
     rows
 }
 
-pub fn board_as_str(board: &Board) -> String {
+pub fn board_as_str(board: &Board, padding: &Padding) -> String {
     let mut s = String::new();
 
-    for row in board.iter() {
-        for cell in row.iter() {
-            if *cell {
-                s.push_str("█");
+    let lines = board.len() as i32;
+    let cols = board[0].len() as i32;
+
+    for line in 0 - padding.top..lines + padding.bottom {
+        for col in 0 - padding.left..cols + padding.right {
+            if line < 0 || line >= lines || col < 0 || col >= cols {
+                s.push_str(" ");
+            } else if board[line as usize][col as usize] {
+                s.push_str("0");
             } else {
-                s.push_str("░");
+                s.push_str(" ");
             }
         }
     }
@@ -126,7 +160,9 @@ mod tests {
     #[test]
     fn board_as_str_test() {
         let board = mkboard(TEST_BOARD);
-        assert_eq!(board_as_str(board), "       0    0    0       ");
+        assert_eq!(board_as_str(&board, &Padding{ top: 0, right: 0, bottom: 0, left: 0}), "       0    0    0       ");
+        assert_eq!(board_as_str(&board, &Padding{ top: 1, right: 1, bottom: 1, left: 1}), "                 0      0      0                 ");
+        assert_eq!(board_as_str(&board, &Padding{ top: -1, right: -1, bottom: -1, left: -1}), " 0  0  0 ");
     }
 
     #[test]
@@ -183,5 +219,28 @@ mod tests {
 
         assert_eq!(tick(&initial_state), second_state);
         assert_eq!(tick(&second_state), initial_state);
+    }
+
+    #[test]
+    fn test_calculate_padding() {
+        assert_eq!(
+            Padding { top: 1, right: 1, bottom: 1, left: 1 },
+            calculate_padding(3, 3, 1, 1)
+        );
+
+        assert_eq!(
+            Padding { top: 1, right: 2, bottom: 2, left: 1 },
+            calculate_padding(4, 4, 1, 1)
+        );
+
+        assert_eq!(
+            Padding { top: -1, right: -1, bottom: -1, left: -1 },
+            calculate_padding(1, 1, 3, 3)
+        );
+
+        assert_eq!(
+            Padding { top: -2, right: -1, bottom: -1, left: -2 },
+            calculate_padding(1, 1, 4, 4)
+        );
     }
 }
