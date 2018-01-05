@@ -8,5 +8,5 @@ name = "game_of_life"
 doc = false
 
 [dependencies.ncurses]
-version = "5.86.0"
+version = "5.88.0"
 features = ["wide"]

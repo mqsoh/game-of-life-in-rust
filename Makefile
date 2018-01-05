@@ -8,4 +8,4 @@ dev: Dockerfile-dev
 	docker build $(opts) --tag local/code/game-of-life --file Dockerfile-dev .
 
 shell: dev
-	docker run --interactive --tty --rm --volume $$(pwd):/workdir --workdir /workdir --env USER=mason local/code/game-of-life
+	docker run --env TERM --interactive --tty --rm --volume $$(pwd):/workdir --workdir /workdir --env USER=$$USER local/code/game-of-life
