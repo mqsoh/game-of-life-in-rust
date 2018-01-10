@@ -7,6 +7,9 @@ authors = ["mason"]
 name = "game_of_life"
 doc = false
 
+[dependencies]
+ctrlc = { version = "3.0", features = ["termination"] }
+
 [dependencies.ncurses]
 version = "5.88.0"
 features = ["wide"]

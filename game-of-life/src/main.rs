@@ -1,10 +1,25 @@
+extern crate ctrlc;
 extern crate ncurses;
 extern crate game_of_life;
 
 use std::{thread, time};
+use std::panic;
+use std::process;
 use game_of_life::{board_as_str, calculate_padding, mkboard, tick};
 
 fn main() {
+    // Clean up ncurses when the program quits with either a SIGINT (Ctrl-C) or
+    // a panic.
+    let old_panic = panic::take_hook();
+    panic::set_hook(Box::new(move |info| {
+        ncurses::endwin();
+        old_panic(info);
+    }));
+    ctrlc::set_handler(move || {
+        ncurses::endwin();
+        process::exit(0);
+    }).expect("Failed registering ctrl-c handler.");
+
     // This initialization sequence is recommended in the ncurses
     // documentation.
     // http://invisible-island.net/ncurses/man/ncurses.3x.html#h3-Initialization
