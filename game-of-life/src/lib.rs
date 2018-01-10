@@ -1,4 +1,4 @@
-type Board = Vec<Vec<bool>>;
+pub type Board = Vec<Vec<bool>>;
 
 #[derive(Debug)]
 pub struct Padding {
@@ -35,7 +35,7 @@ pub fn mkboard(b: &str) -> Board {
     for line in b.trim().lines() {
         let mut columns = Vec::new();
         for c in line.trim().chars() {
-            if c == 'o' {
+            if c == '0' {
                 columns.push(true);
             } else {
                 columns.push(false);
@@ -57,7 +57,7 @@ pub fn board_as_str(board: &Board, padding: &Padding) -> String {
     for line in 0 - padding.top..lines + padding.bottom {
         for col in 0 - padding.left..cols + padding.right {
             if line < 0 || line >= lines || col < 0 || col >= cols {
-                s.push_str(" ");
+                s.push_str("-");
             } else if board[line as usize][col as usize] {
                 s.push_str("0");
             } else {

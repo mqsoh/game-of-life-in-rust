@@ -3,9 +3,17 @@ extern crate ncurses;
 extern crate game_of_life;
 
 use std::{thread, time};
+use std::env;
+use std::fs::File;
+use std::io::prelude::*;
 use std::panic;
 use std::process;
-use game_of_life::{board_as_str, calculate_padding, mkboard, tick};
+use game_of_life::{
+    board_as_str,
+    calculate_padding,
+    mkboard,
+    tick
+};
 
 fn main() {
     // Clean up ncurses when the program quits with either a SIGINT (Ctrl-C) or
@@ -20,6 +28,27 @@ fn main() {
         process::exit(0);
     }).expect("Failed registering ctrl-c handler.");
 
+    let mut board = {
+        let mut args = env::args();
+        let board_fn = match args.nth(1) {
+            Some(x) => x,
+            _ => {
+                println!("No board given. Falling back on \"boards/gallery.txt\".");
+                String::from("boards/gallery.txt")
+            },
+        };
+        let mut board_f = match File::open(&board_fn) {
+            Ok(f) => f,
+            Err(e) => panic!("Couldn't open \"{}\". Error: {}", board_fn, e),
+        };
+        let mut board_contents = String::new();
+        match board_f.read_to_string(&mut board_contents) {
+            Err(e) => panic!("Opened but failed to read \"{}\". Error: {}", board_fn, e),
+            _ => {},
+        };
+        mkboard(board_contents.as_str())
+    };
+
     // This initialization sequence is recommended in the ncurses
     // documentation.
     // http://invisible-island.net/ncurses/man/ncurses.3x.html#h3-Initialization
@@ -28,33 +57,6 @@ fn main() {
     ncurses::cbreak();
     ncurses::noecho();
     ncurses::nonl();
-
-    let mut board = mkboard("
-        ---------------------------------------------
-        -oo---oo----oo---oo----o---------------------
-        -oo--o--o--o--o--o-o--o-o--------------------
-        ------oo----o-o---o----o---------------------
-        -------------o-------------------------------
-        ---------------------------------------------
-        ---------------------------------------------
-        --o-----o---oo-------------------------o-----
-        --o---o--o--oo-------ooo---ooo---------o-----
-        --o---o--o----oo----------------------ooo----
-        -------o------oo---o----o-o----o-------------
-        -------------------o----o-o----o-------------
-        -------------------o----o-o----o------ooo----
-        ---------------------ooo---ooo---------o-----
-        ---------------------------------------o-----
-        ---------------------ooo---ooo---------o-----
-        -------------------o----o-o----o-------o-----
-        -------------------o----o-o----o------ooo----
-        -------------------o----o-o----o-------------
-        ---------------------------------------------
-        ---------------------ooo---ooo--------ooo----
-        ---------------------------------------o-----
-        ---------------------------------------o-----
-        ---------------------------------------------
-    ");
 
     let mut winw: i32 = 0;
     let mut winh: i32 = 0;
