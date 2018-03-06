@@ -16,103 +16,76 @@ use game_of_life::{
     tick
 };
 
+mod config;
+
+#[derive(Debug)]
+enum Anchor {
+    None,
+    TL, TC, TR,
+    CL, CC, CR,
+    BL, BC, BR,
+}
+
 fn main() {
-    let usage = r###"
-NAME
-        game_of_life - Plays the Game of Life in your terminal.
-
-SYNOPSIS
-        game_of_life [BOARD] [options]
-
-DESCRIPTION
-        The BOARD is a file with the lines and columns of a game board. If the
-        starting state of the cell is on, then it should have a "0". An empty
-        cell can be any other character. I used a "." in my example boards. It
-        defaults to a gallery of still lifes and oscillators.
-
-        The board is indepedent of the window size. By default it will be
-        centerd to the viewport whether it's larger or smaller. For boards that
-        are smaller then the window, the anchor flag will orient the board to
-        one of the four corners and resize it to be the same size as the
-        window.
-
-        -a, --anchor ALIGNMENT
-                tl (top left), tr (top right), bl (bottom left), or br (bottom right)
-"###;
-    let args: Vec<String> = env::args().collect();
-    let mut options = getopts::Options::new();
-    options.optopt("a", "anchor", "", "ALIGNMENT");
-    options.optflag("h", "help", "");
-    let matches = match options.parse(&args[1..]) {
-        Err(e) => panic!("Failed parsing command line arguments. Error: {}", e.to_string()),
-        Ok(m) => m,
+    let config = match config::from_args(env::args().collect()) {
+        Err(message) => {
+            println!("{}", message);
+            return
+        },
+        Ok(c) => c,
     };
-
-    if matches.opt_present("h") {
-        println!("{}", usage);
-        return;
-    }
 
     let mut board = {
-        let board_fn = if matches.free.is_empty() {
-            println!("No board given. Falling back on \"boards/gallery.txt\".");
-            String::from("boards/gallery.txt")
-        } else {
-            matches.free[0].clone()
-        };
-        let mut board_f = match File::open(&board_fn) {
+        let _fn = config.starting_board;
+        let mut f = match File::open(&_fn) {
             Ok(f) => f,
-            Err(e) => panic!("Couldn't open \"{}\". Error: {}", board_fn, e),
+            Err(e) => panic!("Couldn't open \"{}\". Error: {}", _fn, e),
         };
-        let mut board_contents = String::new();
-        match board_f.read_to_string(&mut board_contents) {
-            Err(e) => panic!("Opened but failed to read \"{}\". Error: {}", board_fn, e),
+        let mut contents = String::new();
+        match f.read_to_string(&mut contents) {
+            Err(e) => panic!("Opened but failed to read \"{}\". Error: {}", _fn, e),
             _ => {},
         };
-        mkboard(board_contents.as_str())
+        mkboard(contents.as_str())
     };
 
-    // Clean up ncurses when the program quits with either a SIGINT (Ctrl-C) or
-    // a panic.
-    let old_panic = panic::take_hook();
-    panic::set_hook(Box::new(move |info| {
-        ncurses::endwin();
-        old_panic(info);
-    }));
-    ctrlc::set_handler(move || {
-        ncurses::endwin();
-        process::exit(0);
-    }).expect("Failed registering ctrl-c handler.");
+    println!("Board: {:?}", board);
 
-    // This initialization sequence is recommended in the ncurses
-    // documentation.
-    // http://invisible-island.net/ncurses/man/ncurses.3x.html#h3-Initialization
-    ncurses::setlocale(ncurses::LcCategory::all, "");
-    let win = ncurses::initscr();
-    ncurses::cbreak();
-    ncurses::noecho();
-    ncurses::nonl();
+    //// Clean up ncurses when the program quits with either a SIGINT (Ctrl-C) or
+    //// a panic.
+    //let old_panic = panic::take_hook();
+    //panic::set_hook(Box::new(move |info| {
+    //    ncurses::endwin();
+    //    old_panic(info);
+    //}));
+    //ctrlc::set_handler(move || {
+    //    ncurses::endwin();
+    //    process::exit(0);
+    //}).expect("Failed registering ctrl-c handler.");
 
-    let mut winw: i32 = 0;
-    let mut winh: i32 = 0;
-    ncurses::getmaxyx(win, &mut winh, &mut winw);
+    //// This initialization sequence is recommended in the ncurses
+    //// documentation.
+    //// http://invisible-island.net/ncurses/man/ncurses.3x.html#h3-Initialization
+    //ncurses::setlocale(ncurses::LcCategory::all, "");
+    //let win = ncurses::initscr();
+    //ncurses::cbreak();
+    //ncurses::noecho();
+    //ncurses::nonl();
 
-    let boardw = board[0].len() as i32;
-    let boardh = board.len() as i32;
+    //let mut winw: i32 = 0;
+    //let mut winh: i32 = 0;
+    //ncurses::getmaxyx(win, &mut winh, &mut winw);
 
-    let padding = calculate_padding(winw, winh, boardw, boardh);
+    //let boardw = board[0].len() as i32;
+    //let boardh = board.len() as i32;
 
-    // Resize the board if the anchor flag is given.
-    if matches.opt_present("a") && (boardw < winw || boardh < winh) {
-        let corner = matches.opt_str("a");
-        println!("{:?}", corner);
-    }
+    //let padding = calculate_padding(winw, winh, boardw, boardh);
 
-    loop {
-        let b = board_as_str(&board, &padding);
-        ncurses::mvprintw(0, 0, b.as_str());
-        ncurses::refresh();
-        thread::sleep(time::Duration::from_millis(100));
-        board = tick(&board);
-    }
+    //loop {
+    //    let b = board_as_str(&board, &padding);
+    //    ncurses::mvprintw(0, 0, b.as_str());
+    //    ncurses::refresh();
+    //    thread::sleep(time::Duration::from_millis(100));
+    //    board = tick(&board);
+    //}
 }
