@@ -3,7 +3,7 @@
 There's only a demo, hard-coded game board at the moment. If you just want to
 see it, run:
 
-    docker run -it --rm mqsoh/game-of-life-in-rust
+    docker run -i --rm -e TERM mqsoh/game-of-life-in-rust
 
 You might need to `reset` your terminal afterwards because I'm not properly
 cleaning up ncurses.
